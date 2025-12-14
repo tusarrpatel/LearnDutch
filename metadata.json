@@ -1,0 +1,7 @@
+{
+  "name": "Zakelijk Nederlands - Workplace Dutch",
+  "description": "A phased Dutch learning application tailored for English speakers entering the Dutch workforce. Features grammar, reading, writing, and listening modules powered by AI.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
