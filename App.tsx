@@ -7,6 +7,7 @@ import { loadProgress, saveProgress, saveReadingStats, getAverageConfidence, sav
 import Button from './components/Button';
 import AudioPlayer from './components/AudioPlayer';
 import AudioRecorder from './components/AudioRecorder';
+import PronunciationPractice from './components/PronunciationPractice';
 import QuizComponent from './components/QuizComponent';
 import GlossaryMatchGame from './components/GlossaryMatchGame';
 import { 
@@ -429,6 +430,10 @@ const GrammarView = ({ chapter, onBack, onAddToDeck, onComplete, onNotify }: { c
 
   if (!data) return <LoadingScreen />;
 
+  // Select a phrase for pronunciation practice (either from drills or generated expl)
+  const practiceSentence = data.drills.find(d => d.exampleSentence)?.exampleSentence 
+    || data.explanation.split('.')[0] + '.';
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -452,6 +457,9 @@ const GrammarView = ({ chapter, onBack, onAddToDeck, onComplete, onNotify }: { c
       {data.drills && data.drills.length > 0 && (
          <DrillSection drills={data.drills} />
       )}
+
+      {/* Integrated Pronunciation Practice */}
+      <PronunciationPractice referenceText={practiceSentence} onNotify={onNotify} />
 
       {data.flashcards && data.flashcards.length > 0 && (
         <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8">
@@ -514,6 +522,9 @@ const ReadingView = ({ chapter, onBack, onAddToDeck, onComplete, onNotify }: { c
     onComplete(confidence);
   };
 
+  // Pick first sentence for practice
+  const practiceSentence = data.text.split(/[.!?]/)[0] + '.';
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -561,6 +572,9 @@ const ReadingView = ({ chapter, onBack, onAddToDeck, onComplete, onNotify }: { c
           />
         </>
       )}
+
+      {/* Integrated Pronunciation Practice */}
+      <PronunciationPractice referenceText={practiceSentence} onNotify={onNotify} />
 
       <QuizComponent questions={data.questions} onComplete={() => setQuizFinished(true)} />
 
@@ -678,6 +692,13 @@ const WritingView = ({ chapter, onBack, onComplete, onNotify }: { chapter: Chapt
                   </div>
                </div>
              </div>
+             
+             {/* Pronunciation Practice for Writing */}
+             <div className="mt-6 pt-6 border-t border-slate-100">
+               <h4 className="font-bold text-slate-800 mb-4">Read your improved text aloud:</h4>
+               <PronunciationPractice referenceText={feedback.correctedText} onNotify={onNotify} />
+             </div>
+
              <div className="mt-6 flex justify-end gap-4">
                <Button variant="outline" onClick={() => setFeedback(null)}>Try Again</Button>
                <Button variant="primary" onClick={onBack}>Finish Lesson</Button>
@@ -695,8 +716,6 @@ const WritingView = ({ chapter, onBack, onComplete, onNotify }: { chapter: Chapt
 // 4. Listening View
 const ListeningView = ({ chapter, onBack, onComplete, onNotify }: { chapter: Chapter; onBack: () => void; onComplete: () => void; onNotify: (msg: string) => void }) => {
   const [data, setData] = useState<ListeningExercise | null>(null);
-  const [practiceFeedback, setPracticeFeedback] = useState<{score: number, feedback: string} | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const saved = loadActiveLesson(chapter.id);
@@ -712,22 +731,6 @@ const ListeningView = ({ chapter, onBack, onComplete, onNotify }: { chapter: Cha
     if (data) {
       saveActiveLesson(chapter.id, data);
       onNotify("Lesson saved successfully");
-    }
-  };
-
-  const handleVoiceRecord = async (base64: string, mimeType: string) => {
-    if (!data) return;
-    setIsProcessing(true);
-    try {
-       // Extract just the first sentence for checking
-       const firstSentence = data.transcript.split(/[.!?]/)[0] + '.';
-       const result = await evaluateSpeech(base64, mimeType, firstSentence);
-       setPracticeFeedback({ score: result.score, feedback: result.feedback });
-    } catch (e) {
-      console.error(e);
-      onNotify("Failed to analyze audio");
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -755,32 +758,7 @@ const ListeningView = ({ chapter, onBack, onComplete, onNotify }: { chapter: Cha
       <QuizComponent questions={data.questions} onComplete={onComplete} />
       
       {/* Pronunciation Practice Section */}
-      <div className="mt-8 bg-blue-50 p-6 rounded-xl border border-blue-100">
-        <h3 className="text-lg font-bold text-blue-900 mb-2 flex items-center gap-2">
-          <Mic size={20} /> Speaking Practice
-        </h3>
-        <p className="text-blue-700 mb-4">Read this sentence aloud to check your pronunciation:</p>
-        
-        <div className="bg-white p-4 rounded-lg mb-6 border border-blue-200 text-center shadow-sm">
-           <p className="text-xl font-serif text-slate-800 italic">"{practiceSentence}"</p>
-        </div>
-
-        <div className="flex flex-col items-center gap-4">
-           <AudioRecorder onRecordingComplete={handleVoiceRecord} isProcessing={isProcessing} />
-           
-           {practiceFeedback && (
-             <div className="w-full animate-fade-in">
-               <div className={`p-4 rounded-lg border ${practiceFeedback.score >= 7 ? 'bg-green-100 border-green-200 text-green-900' : 'bg-orange-100 border-orange-200 text-orange-900'}`}>
-                 <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold">Feedback</span>
-                    <span className="px-2 py-0.5 bg-white/50 rounded text-sm font-bold">Score: {practiceFeedback.score}/10</span>
-                 </div>
-                 <p>{practiceFeedback.feedback}</p>
-               </div>
-             </div>
-           )}
-        </div>
-      </div>
+      <PronunciationPractice referenceText={practiceSentence} onNotify={onNotify} />
 
       <div className="mt-8 text-center">
         <details className="cursor-pointer text-slate-500 text-sm">

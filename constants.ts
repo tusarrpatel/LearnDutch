@@ -4,7 +4,7 @@ export const CURRICULUM: Chapter[] = [
   // Phase 1: Beginner
   {
     id: 'p1-grammar-1',
-    title: 'De/Het and Basic Word Order',
+    title: 'Grammar Foundations: Articles & Word Order',
     description: 'Understand the foundations of Dutch articles and sentence structure.',
     type: ModuleType.GRAMMAR,
     level: DifficultyLevel.BEGINNER
