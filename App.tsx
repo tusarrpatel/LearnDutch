@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CURRICULUM } from './constants';
-import { Chapter, ModuleType, QuizQuestion, ReadingContent, WritingFeedback, ListeningExercise, Message, Flashcard, GrammarContent } from './types';
+import { Chapter, ModuleType, QuizQuestion, ReadingContent, WritingFeedback, ListeningExercise, Message, Flashcard, GrammarContent, GrammarDrill } from './types';
 import { generateGrammarLesson, generateReadingExercise, checkWritingExercise, generateListeningExercise, getChatResponse, evaluateSpeech } from './services/geminiService';
 import { loadDeck, saveDeck, createCard, calculateReview, getDueCards } from './services/srsService';
 import { loadProgress, saveProgress, saveReadingStats, getAverageConfidence, saveActiveLesson, loadActiveLesson } from './services/progressService';
@@ -33,7 +33,9 @@ import {
   Save,
   Settings,
   Sparkles,
-  Mic
+  Mic,
+  ArrowRight,
+  RefreshCcw
 } from 'lucide-react';
 
 // --- Sub-components for specific Views ---
@@ -44,6 +46,185 @@ const LoadingScreen = () => (
     <p className="text-slate-500 font-medium">Gemini is preparing your lesson...</p>
   </div>
 );
+
+// --- Drill Component ---
+const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
+  const [activeDrillIndex, setActiveDrillIndex] = useState(0);
+  const [feedback, setFeedback] = useState<{isCorrect: boolean, msg: string} | null>(null);
+
+  // Fill in blank state
+  const [fillInput, setFillInput] = useState("");
+  
+  // Reorder state
+  const [reorderSelection, setReorderSelection] = useState<string[]>([]);
+  const [reorderPool, setReorderPool] = useState<string[]>([]);
+
+  const activeDrill = drills[activeDrillIndex];
+
+  useEffect(() => {
+    // Reset state on drill change
+    setFeedback(null);
+    setFillInput("");
+    if (activeDrill?.type === 'reorder' && activeDrill.reorderSegments) {
+       // Shuffle segments initially for better challenge if they aren't already shuffled? 
+       // Assuming API sends shuffled or we shuffle here.
+       setReorderPool([...activeDrill.reorderSegments].sort(() => Math.random() - 0.5));
+       setReorderSelection([]);
+    }
+  }, [activeDrill]);
+
+  const handleFillCheck = () => {
+    if (fillInput.trim().toLowerCase() === activeDrill.correctAnswer.toLowerCase()) {
+      setFeedback({ isCorrect: true, msg: "Correct! " + activeDrill.explanation });
+    } else {
+      setFeedback({ isCorrect: false, msg: `Incorrect. The correct answer is '${activeDrill.correctAnswer}'. ${activeDrill.explanation}` });
+    }
+  };
+
+  const handleReorderCheck = () => {
+    const userSentence = reorderSelection.join(' ');
+    // Basic normalization for comparison (trim, simple punctuation agnostic if needed)
+    if (userSentence.trim() === activeDrill.correctAnswer.trim()) {
+      setFeedback({ isCorrect: true, msg: "Correct! " + activeDrill.explanation });
+    } else {
+       setFeedback({ isCorrect: false, msg: `Incorrect. The correct order is: "${activeDrill.correctAnswer}". ${activeDrill.explanation}` });
+    }
+  };
+
+  const nextDrill = () => {
+    if (activeDrillIndex < drills.length - 1) {
+      setActiveDrillIndex(prev => prev + 1);
+    }
+  };
+
+  const isLast = activeDrillIndex === drills.length - 1;
+
+  if (!activeDrill) return null;
+
+  return (
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+           <PenTool size={18} className="text-orange-500" /> 
+           Practice Drill {activeDrillIndex + 1}/{drills.length}
+        </h3>
+        <span className="text-xs uppercase font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded border">
+          {activeDrill.type.replace('-', ' ')}
+        </span>
+      </div>
+
+      <p className="mb-4 text-slate-700 font-medium">{activeDrill.question}</p>
+
+      {activeDrill.type === 'fill-in-blank' && (
+        <div className="space-y-4">
+           <div className="p-6 bg-slate-50 rounded-lg text-lg text-slate-800 border border-slate-200">
+              {activeDrill.fillInBlankSentence?.split('____').map((part, i, arr) => (
+                <React.Fragment key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                     <input 
+                       type="text" 
+                       value={fillInput}
+                       onChange={(e) => setFillInput(e.target.value)}
+                       className={`mx-2 border-b-2 bg-transparent outline-none text-center font-bold w-32 focus:border-orange-500 ${
+                         feedback 
+                           ? feedback.isCorrect ? 'border-green-500 text-green-700' : 'border-red-500 text-red-700'
+                           : 'border-slate-400'
+                       }`}
+                       placeholder="?"
+                       disabled={!!feedback}
+                     />
+                  )}
+                </React.Fragment>
+              ))}
+           </div>
+           
+           {!feedback && (
+             <div className="flex justify-end">
+               <Button onClick={handleFillCheck} disabled={!fillInput.trim()}>Check Answer</Button>
+             </div>
+           )}
+        </div>
+      )}
+
+      {activeDrill.type === 'reorder' && (
+        <div className="space-y-6">
+           {/* Drop Zone */}
+           <div className={`min-h-[60px] p-4 rounded-lg border-2 border-dashed flex flex-wrap gap-2 items-center ${
+              feedback 
+               ? feedback.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+               : 'bg-slate-50 border-slate-200'
+           }`}>
+              {reorderSelection.length === 0 && !feedback && (
+                <span className="text-slate-400 text-sm w-full text-center">Tap words below to build the sentence</span>
+              )}
+              {reorderSelection.map((word, idx) => (
+                <button
+                  key={`${word}-${idx}`}
+                  onClick={() => {
+                    if (feedback) return;
+                    setReorderSelection(prev => prev.filter((_, i) => i !== idx));
+                    setReorderPool(prev => [...prev, word]);
+                  }}
+                  disabled={!!feedback}
+                  className="bg-white px-3 py-1.5 rounded shadow-sm border border-slate-200 font-medium hover:border-red-300 text-slate-800"
+                >
+                  {word}
+                </button>
+              ))}
+           </div>
+
+           {/* Word Pool */}
+           <div className="flex flex-wrap gap-2 justify-center">
+              {reorderPool.map((word, idx) => (
+                <button
+                  key={`${word}-${idx}`}
+                  onClick={() => {
+                    if (feedback) return;
+                    setReorderPool(prev => prev.filter((_, i) => i !== idx));
+                    setReorderSelection(prev => [...prev, word]);
+                  }}
+                  disabled={!!feedback}
+                  className="bg-blue-50 text-blue-800 px-3 py-1.5 rounded shadow-sm border border-blue-100 font-medium hover:bg-blue-100 hover:-translate-y-0.5 transition-all"
+                >
+                  {word}
+                </button>
+              ))}
+           </div>
+
+           {!feedback && (
+              <div className="flex justify-between items-center">
+                <button 
+                  onClick={() => {
+                     setReorderPool([...(activeDrill.reorderSegments || [])]);
+                     setReorderSelection([]);
+                  }}
+                  className="text-slate-400 hover:text-slate-600 flex items-center gap-1 text-sm"
+                >
+                  <RefreshCcw size={14} /> Reset
+                </button>
+                <Button onClick={handleReorderCheck} disabled={reorderSelection.length === 0}>Check Order</Button>
+              </div>
+           )}
+        </div>
+      )}
+
+      {feedback && (
+        <div className={`mt-6 p-4 rounded-lg border flex items-start gap-3 animate-fade-in ${
+          feedback.isCorrect ? 'bg-green-50 border-green-200 text-green-900' : 'bg-red-50 border-red-200 text-red-900'
+        }`}>
+          {feedback.isCorrect ? <Check size={20} className="mt-0.5" /> : <RefreshCcw size={20} className="mt-0.5" />}
+          <div className="flex-1">
+             <p className="font-medium">{feedback.msg}</p>
+          </div>
+          {!isLast && feedback.isCorrect && (
+            <Button size="sm" onClick={nextDrill} className="ml-2">Next Drill <ArrowRight size={14} /></Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // 1. Grammar View
 const GrammarView = ({ chapter, onBack, onAddToDeck, onComplete, onNotify }: { chapter: Chapter; onBack: () => void; onAddToDeck: (front: string, back: string, source: string) => void; onComplete: () => void; onNotify: (msg: string) => void }) => {
@@ -182,6 +363,10 @@ const GrammarView = ({ chapter, onBack, onAddToDeck, onComplete, onNotify }: { c
           para.trim() && <p key={i} className="mb-4 text-slate-700 leading-relaxed">{para}</p>
         ))}
       </div>
+
+      {data.drills && data.drills.length > 0 && (
+         <DrillSection drills={data.drills} />
+      )}
 
       {data.flashcards && data.flashcards.length > 0 && (
         <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8">

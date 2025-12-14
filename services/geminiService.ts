@@ -13,13 +13,40 @@ const cleanJson = (text: string) => {
 export const generateGrammarLesson = async (topic: string, level: string): Promise<GrammarContent> => {
   const prompt = `Create a Dutch grammar lesson about "${topic}" for a student at the "${level}" level. 
   Focus on workplace usage.
-  Provide a clear, concise explanation in English (with Dutch examples).
-  Then provide 3 multiple choice quiz questions to test understanding.
-  Finally, provide 3-5 key concepts/rules from this lesson formatted as flashcards (Front: Concept Name/Dutch Phrase, Back: Explanation/English).
+  
+  1. Provide a clear, concise explanation in English (with Dutch examples).
+  
+  2. Create 2 "fill-in-the-blank" drills. 
+     - Provide a sentence with a '____' placeholder.
+     - The 'correctAnswer' should be just the word(s) that go in the blank.
+  
+  3. Create 2 "sentence reordering" drills.
+     - Provide a list of scrambled words/phrases in 'reorderSegments'.
+     - The 'correctAnswer' should be the full correct sentence string.
+
+  4. Provide 3 multiple choice quiz questions to test general understanding.
+
+  5. Provide 3-5 key concepts/rules from this lesson formatted as flashcards (Front: Concept Name/Dutch Phrase, Back: Explanation/English).
   
   Return the response in this specific JSON schema:
   {
     "explanation": "string (markdown allowed)",
+    "drills": [
+      {
+        "type": "fill-in-blank", 
+        "question": "Instruction (e.g. Conjugate 'lopen')",
+        "fillInBlankSentence": "Ik ____ naar het werk.",
+        "correctAnswer": "loop",
+        "explanation": "why this is correct"
+      },
+      {
+        "type": "reorder",
+        "question": "Put the words in the correct order",
+        "reorderSegments": ["word1", "word2"],
+        "correctAnswer": "word1 word2",
+        "explanation": "word order rule"
+      }
+    ],
     "quiz": [
       {
         "question": "string",
@@ -42,6 +69,20 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
         type: Type.OBJECT,
         properties: {
           explanation: { type: Type.STRING },
+          drills: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING, enum: ["fill-in-blank", "reorder"] },
+                question: { type: Type.STRING },
+                fillInBlankSentence: { type: Type.STRING },
+                reorderSegments: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctAnswer: { type: Type.STRING },
+                explanation: { type: Type.STRING }
+              }
+            }
+          },
           quiz: {
             type: Type.ARRAY,
             items: {

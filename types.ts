@@ -68,9 +68,19 @@ export interface Flashcard {
   source?: string; // e.g., 'Grammar: Word Order'
 }
 
+export interface GrammarDrill {
+  type: 'fill-in-blank' | 'reorder';
+  question: string;
+  fillInBlankSentence?: string; 
+  reorderSegments?: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
 export interface GrammarContent {
   topic?: string;
   explanation: string;
   quiz: QuizQuestion[];
+  drills: GrammarDrill[];
   flashcards: { front: string; back: string }[];
 }
