@@ -76,6 +76,10 @@ export interface GrammarDrill {
   options?: string[];
   correctAnswer: string;
   explanation: string;
+  // Educational Context
+  ruleExplanation?: string;
+  exampleSentence?: string;
+  exampleTranslation?: string;
 }
 
 export interface GrammarContent {

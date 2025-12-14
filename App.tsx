@@ -38,7 +38,8 @@ import {
   RefreshCcw,
   Circle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Lightbulb
 } from 'lucide-react';
 
 // --- Sub-components for specific Views ---
@@ -272,16 +273,38 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
       )}
 
       {feedback && (
-        <div className={`mt-6 p-4 rounded-lg border flex items-start gap-3 animate-fade-in ${
-          feedback.isCorrect ? 'bg-green-50 border-green-200 text-green-900' : 'bg-red-50 border-red-200 text-red-900'
+        <div className={`mt-6 p-4 rounded-lg border flex flex-col gap-3 animate-fade-in ${
+          feedback.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
         }`}>
-          {feedback.isCorrect ? <Check size={20} className="mt-0.5" /> : <RefreshCcw size={20} className="mt-0.5" />}
-          <div className="flex-1">
-             <p className="font-medium">{feedback.msg}</p>
+          <div className="flex items-start gap-3">
+             {feedback.isCorrect ? <Check size={20} className="mt-0.5 text-green-700" /> : <RefreshCcw size={20} className="mt-0.5 text-red-700" />}
+             <div className="flex-1">
+                <p className={`font-medium ${feedback.isCorrect ? 'text-green-900' : 'text-red-900'}`}>{feedback.msg}</p>
+             </div>
           </div>
-          {!isLast && feedback.isCorrect && (
-            <Button size="sm" onClick={nextDrill} className="ml-2">Next Drill <ArrowRight size={14} /></Button>
+          
+          {(activeDrill.ruleExplanation || activeDrill.exampleSentence) && (
+            <div className="mt-2 pt-3 border-t border-black/5">
+              {activeDrill.ruleExplanation && (
+                <div className="flex gap-2 mb-2">
+                  <Lightbulb size={16} className="text-orange-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-slate-800"><span className="font-semibold">Rule:</span> {activeDrill.ruleExplanation}</p>
+                </div>
+              )}
+              {activeDrill.exampleSentence && (
+                <div className="bg-white/60 p-3 rounded-lg text-sm ml-6">
+                  <p className="italic text-slate-900 font-medium">"{activeDrill.exampleSentence}"</p>
+                  {activeDrill.exampleTranslation && <p className="text-slate-500 mt-1">{activeDrill.exampleTranslation}</p>}
+                </div>
+              )}
+            </div>
           )}
+
+          <div className="flex justify-end pt-2">
+             {!isLast && feedback.isCorrect && (
+               <Button size="sm" onClick={nextDrill} className="ml-2">Next Drill <ArrowRight size={14} /></Button>
+             )}
+          </div>
         </div>
       )}
     </div>

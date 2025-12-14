@@ -29,6 +29,11 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
      - Provide 3-4 options in 'options'.
      - The 'correctAnswer' must be the exact text of one of the options.
 
+  IMPORTANT: For EVERY drill, include:
+  - 'ruleExplanation': A concise 1-sentence explanation of the specific grammar rule being tested.
+  - 'exampleSentence': A separate Dutch sentence demonstrating this rule.
+  - 'exampleTranslation': The English translation of that example.
+
   5. Provide 3 multiple choice quiz questions to test general understanding (separate from drills).
 
   6. Provide 3-5 key concepts/rules from this lesson formatted as flashcards (Front: Concept Name/Dutch Phrase, Back: Explanation/English).
@@ -42,21 +47,30 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
         "question": "Instruction",
         "fillInBlankSentence": "Ik ____ naar het werk.",
         "correctAnswer": "loop",
-        "explanation": "why this is correct"
+        "explanation": "Why 'loop' is correct here.",
+        "ruleExplanation": "First person singular uses the stem.",
+        "exampleSentence": "Ik werk elke dag.",
+        "exampleTranslation": "I work every day."
       },
       {
         "type": "reorder",
         "question": "Instruction",
         "reorderSegments": ["word1", "word2"],
         "correctAnswer": "word1 word2",
-        "explanation": "why this is correct"
+        "explanation": "Correct sentence structure.",
+        "ruleExplanation": "Verb is second in main clause.",
+        "exampleSentence": "Hij belt de klant.",
+        "exampleTranslation": "He calls the customer."
       },
       {
         "type": "multiple-choice",
         "question": "Choose the correct article for 'Project':",
         "options": ["De", "Het", "Een"],
         "correctAnswer": "Het",
-        "explanation": "Project is a neuter noun."
+        "explanation": "Project is neuter.",
+        "ruleExplanation": "Most borrowed nouns ending in -ect are neuter.",
+        "exampleSentence": "Het project is klaar.",
+        "exampleTranslation": "The project is done."
       }
     ],
     "quiz": [
@@ -92,7 +106,10 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
                 reorderSegments: { type: Type.ARRAY, items: { type: Type.STRING } },
                 options: { type: Type.ARRAY, items: { type: Type.STRING } },
                 correctAnswer: { type: Type.STRING },
-                explanation: { type: Type.STRING }
+                explanation: { type: Type.STRING },
+                ruleExplanation: { type: Type.STRING },
+                exampleSentence: { type: Type.STRING },
+                exampleTranslation: { type: Type.STRING }
               }
             }
           },
