@@ -35,7 +35,10 @@ import {
   Sparkles,
   Mic,
   ArrowRight,
-  RefreshCcw
+  RefreshCcw,
+  Circle,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 
 // --- Sub-components for specific Views ---
@@ -59,15 +62,17 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
   const [reorderSelection, setReorderSelection] = useState<string[]>([]);
   const [reorderPool, setReorderPool] = useState<string[]>([]);
 
+  // MCQ state
+  const [mcqSelection, setMcqSelection] = useState<string | null>(null);
+
   const activeDrill = drills[activeDrillIndex];
 
   useEffect(() => {
     // Reset state on drill change
     setFeedback(null);
     setFillInput("");
+    setMcqSelection(null);
     if (activeDrill?.type === 'reorder' && activeDrill.reorderSegments) {
-       // Shuffle segments initially for better challenge if they aren't already shuffled? 
-       // Assuming API sends shuffled or we shuffle here.
        setReorderPool([...activeDrill.reorderSegments].sort(() => Math.random() - 0.5));
        setReorderSelection([]);
     }
@@ -83,11 +88,19 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
 
   const handleReorderCheck = () => {
     const userSentence = reorderSelection.join(' ');
-    // Basic normalization for comparison (trim, simple punctuation agnostic if needed)
     if (userSentence.trim() === activeDrill.correctAnswer.trim()) {
       setFeedback({ isCorrect: true, msg: "Correct! " + activeDrill.explanation });
     } else {
        setFeedback({ isCorrect: false, msg: `Incorrect. The correct order is: "${activeDrill.correctAnswer}". ${activeDrill.explanation}` });
+    }
+  };
+
+  const handleMcqCheck = () => {
+    if (!mcqSelection) return;
+    if (mcqSelection === activeDrill.correctAnswer) {
+      setFeedback({ isCorrect: true, msg: "Correct! " + activeDrill.explanation });
+    } else {
+      setFeedback({ isCorrect: false, msg: `Incorrect. The correct answer is '${activeDrill.correctAnswer}'. ${activeDrill.explanation}` });
     }
   };
 
@@ -113,8 +126,9 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
         </span>
       </div>
 
-      <p className="mb-4 text-slate-700 font-medium">{activeDrill.question}</p>
+      <p className="mb-4 text-slate-700 font-medium text-lg">{activeDrill.question}</p>
 
+      {/* Fill-in-blank Type */}
       {activeDrill.type === 'fill-in-blank' && (
         <div className="space-y-4">
            <div className="p-6 bg-slate-50 rounded-lg text-lg text-slate-800 border border-slate-200">
@@ -147,9 +161,9 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
         </div>
       )}
 
+      {/* Reorder Type */}
       {activeDrill.type === 'reorder' && (
         <div className="space-y-6">
-           {/* Drop Zone */}
            <div className={`min-h-[60px] p-4 rounded-lg border-2 border-dashed flex flex-wrap gap-2 items-center ${
               feedback 
                ? feedback.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
@@ -174,7 +188,6 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
               ))}
            </div>
 
-           {/* Word Pool */}
            <div className="flex flex-wrap gap-2 justify-center">
               {reorderPool.map((word, idx) => (
                 <button
@@ -205,6 +218,55 @@ const DrillSection = ({ drills }: { drills: GrammarDrill[] }) => {
                 </button>
                 <Button onClick={handleReorderCheck} disabled={reorderSelection.length === 0}>Check Order</Button>
               </div>
+           )}
+        </div>
+      )}
+
+      {/* Multiple Choice Type */}
+      {activeDrill.type === 'multiple-choice' && activeDrill.options && (
+        <div className="space-y-4">
+           <div className="grid grid-cols-1 gap-3">
+             {activeDrill.options.map((option, idx) => {
+               const isSelected = mcqSelection === option;
+               let btnClass = "w-full text-left p-4 rounded-lg border-2 transition-all flex items-center justify-between ";
+               
+               if (feedback) {
+                  if (option === activeDrill.correctAnswer) {
+                     btnClass += "bg-green-50 border-green-500 text-green-800";
+                  } else if (isSelected && option !== activeDrill.correctAnswer) {
+                     btnClass += "bg-red-50 border-red-500 text-red-800";
+                  } else {
+                     btnClass += "bg-white border-slate-100 text-slate-400 opacity-60";
+                  }
+               } else {
+                  if (isSelected) {
+                     btnClass += "bg-orange-50 border-orange-500 text-orange-900";
+                  } else {
+                     btnClass += "bg-white border-slate-200 hover:border-orange-300 hover:bg-slate-50 text-slate-700";
+                  }
+               }
+
+               return (
+                 <button 
+                   key={idx}
+                   onClick={() => !feedback && setMcqSelection(option)}
+                   className={btnClass}
+                   disabled={!!feedback}
+                 >
+                   <span className="font-medium">{option}</span>
+                   {feedback && option === activeDrill.correctAnswer && <CheckCircle size={20} className="text-green-600" />}
+                   {feedback && isSelected && option !== activeDrill.correctAnswer && <XCircle size={20} className="text-red-600" />}
+                   {!feedback && isSelected && <CheckCircle size={20} className="text-orange-500" />}
+                   {!feedback && !isSelected && <Circle size={20} className="text-slate-300" />}
+                 </button>
+               )
+             })}
+           </div>
+           
+           {!feedback && (
+             <div className="flex justify-end pt-2">
+               <Button onClick={handleMcqCheck} disabled={!mcqSelection}>Check Answer</Button>
+             </div>
            )}
         </div>
       )}

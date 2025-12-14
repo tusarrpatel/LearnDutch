@@ -20,13 +20,18 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
      - Provide a sentence with a '____' placeholder.
      - The 'correctAnswer' should be just the word(s) that go in the blank.
   
-  3. Create 2 "sentence reordering" drills.
+  3. Create 1 "sentence reordering" drill.
      - Provide a list of scrambled words/phrases in 'reorderSegments'.
      - The 'correctAnswer' should be the full correct sentence string.
+  
+  4. Create 2 "multiple-choice" drills.
+     - Provide a question asking to identify the correct form or rule usage.
+     - Provide 3-4 options in 'options'.
+     - The 'correctAnswer' must be the exact text of one of the options.
 
-  4. Provide 3 multiple choice quiz questions to test general understanding.
+  5. Provide 3 multiple choice quiz questions to test general understanding (separate from drills).
 
-  5. Provide 3-5 key concepts/rules from this lesson formatted as flashcards (Front: Concept Name/Dutch Phrase, Back: Explanation/English).
+  6. Provide 3-5 key concepts/rules from this lesson formatted as flashcards (Front: Concept Name/Dutch Phrase, Back: Explanation/English).
   
   Return the response in this specific JSON schema:
   {
@@ -34,17 +39,24 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
     "drills": [
       {
         "type": "fill-in-blank", 
-        "question": "Instruction (e.g. Conjugate 'lopen')",
+        "question": "Instruction",
         "fillInBlankSentence": "Ik ____ naar het werk.",
         "correctAnswer": "loop",
         "explanation": "why this is correct"
       },
       {
         "type": "reorder",
-        "question": "Put the words in the correct order",
+        "question": "Instruction",
         "reorderSegments": ["word1", "word2"],
         "correctAnswer": "word1 word2",
-        "explanation": "word order rule"
+        "explanation": "why this is correct"
+      },
+      {
+        "type": "multiple-choice",
+        "question": "Choose the correct article for 'Project':",
+        "options": ["De", "Het", "Een"],
+        "correctAnswer": "Het",
+        "explanation": "Project is a neuter noun."
       }
     ],
     "quiz": [
@@ -74,10 +86,11 @@ export const generateGrammarLesson = async (topic: string, level: string): Promi
             items: {
               type: Type.OBJECT,
               properties: {
-                type: { type: Type.STRING, enum: ["fill-in-blank", "reorder"] },
+                type: { type: Type.STRING, enum: ["fill-in-blank", "reorder", "multiple-choice"] },
                 question: { type: Type.STRING },
                 fillInBlankSentence: { type: Type.STRING },
                 reorderSegments: { type: Type.ARRAY, items: { type: Type.STRING } },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
                 correctAnswer: { type: Type.STRING },
                 explanation: { type: Type.STRING }
               }

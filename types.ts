@@ -69,10 +69,11 @@ export interface Flashcard {
 }
 
 export interface GrammarDrill {
-  type: 'fill-in-blank' | 'reorder';
+  type: 'fill-in-blank' | 'reorder' | 'multiple-choice';
   question: string;
   fillInBlankSentence?: string; 
   reorderSegments?: string[];
+  options?: string[];
   correctAnswer: string;
   explanation: string;
 }
