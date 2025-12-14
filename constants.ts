@@ -17,6 +17,27 @@ export const CURRICULUM: Chapter[] = [
     level: DifficultyLevel.BEGINNER
   },
   {
+    id: 'p1-listening-2',
+    title: 'Numbers & Dates',
+    description: 'Understand meeting times, dates, and phone numbers.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.BEGINNER
+  },
+  {
+    id: 'p1-listening-3',
+    title: 'Office Directions',
+    description: 'Listen to directions to find facilities within the office building.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.BEGINNER
+  },
+  {
+    id: 'p1-listening-4',
+    title: 'Simple Requests',
+    description: 'Identify common requests for help or supplies.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.BEGINNER
+  },
+  {
     id: 'p1-writing-1',
     title: 'Introduce Yourself',
     description: 'Write a short paragraph introducing yourself to a new colleague.',
@@ -40,6 +61,27 @@ export const CURRICULUM: Chapter[] = [
     level: DifficultyLevel.INTERMEDIATE
   },
   {
+    id: 'p2-listening-1',
+    title: 'Voicemail Analysis',
+    description: 'Understand complex voicemail messages from clients.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.INTERMEDIATE
+  },
+  {
+    id: 'p2-listening-2',
+    title: 'Team Updates',
+    description: 'Follow the flow of a team stand-up meeting.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.INTERMEDIATE
+  },
+  {
+    id: 'p2-listening-3',
+    title: 'Travel Arrangements',
+    description: 'Understand booking details and travel itineraries.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.INTERMEDIATE
+  },
+  {
     id: 'p2-conversation-1',
     title: 'The Coffee Corner',
     description: 'Small talk practice simulation with a colleague.',
@@ -59,6 +101,20 @@ export const CURRICULUM: Chapter[] = [
     id: 'p3-listening-1',
     title: 'Meeting Minutes',
     description: 'Listen to a meeting excerpt and summarize key points.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.PROFESSIONAL
+  },
+  {
+    id: 'p3-listening-2',
+    title: 'Performance Review',
+    description: 'Understand feedback given during a performance evaluation.',
+    type: ModuleType.LISTENING,
+    level: DifficultyLevel.PROFESSIONAL
+  },
+  {
+    id: 'p3-listening-3',
+    title: 'Strategic Planning',
+    description: 'Comprehend a high-level presentation on company strategy.',
     type: ModuleType.LISTENING,
     level: DifficultyLevel.PROFESSIONAL
   }

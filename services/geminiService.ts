@@ -225,9 +225,9 @@ export const checkWritingExercise = async (userText: string, context: string): P
 
 export const generateListeningExercise = async (topic: string, level: string): Promise<ListeningExercise> => {
   // Step 1: Generate the text transcript
-  const textPrompt = `Generate a 2-3 sentence Dutch phrase/monologue related to "${topic}" for a "${level}" learner. 
-  It should be something one might hear in an office.
-  Also generate 2 simple comprehension questions based on it.
+  const textPrompt = `Generate a realistic Dutch dialogue or monologue (approx 100-150 words) related to "${topic}" for a "${level}" learner. 
+  It should be something one might hear in an office context.
+  Also generate 10 comprehension questions based on it.
   
   Return JSON: { "transcript": "...", "questions": [...] }`;
 
